@@ -1,0 +1,15 @@
+run = "uvicorn main:app --host 0.0.0.0 --port 8000"
+entrypoint = "main.py"
+modules = ["python-3.11"]
+
+[[ports]]
+localPort = 8000
+externalPort = 80
+
+[deployment]
+build = ["sh", "-c", "pip install -r requirements.txt"]
+run = ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+deploymentTarget = "gce"
+
+[nix]
+channel = "stable-25_05"
