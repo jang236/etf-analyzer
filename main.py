@@ -34,6 +34,8 @@ from etf_cache import (
     TTL_DETAIL, TTL_LIST, TTL_HOLDINGS, TTL_RETURNS,
 )
 from portfolio_engine import recommend as portfolio_recommend
+from llm_narrative import explain_etf, explain_comparison, explain_portfolio, is_available as llm_available
+from stock_final_client import get_stock_analysis, is_available as stock_final_available
 
 KST = timezone(timedelta(hours=9))
 
@@ -41,7 +43,7 @@ KST = timezone(timedelta(hours=9))
 app = FastAPI(
     title="etf-analyzer",
     description="한국/해외 ETF 분석 & 포트폴리오 추천 서비스",
-    version="0.3.0",
+    version="0.4.0",
     openapi_url=None,
     docs_url=None,
     redoc_url=None,
@@ -107,7 +109,7 @@ def _cached_fetch(key: str, ttl: int, fetcher):
 def root():
     return {
         "service": "etf-analyzer",
-        "version": "0.3.0",
+        "version": "0.4.0",
         "status": "ready",
         "message": "한국/해외 ETF 분석 및 포트폴리오 추천 서비스",
     }
@@ -123,6 +125,8 @@ def health():
             "yfinance": "ready",
             "cache": "ready",
             "portfolio_engine": "ready",
+            "llm_narrative": "available" if llm_available() else "stub (set GEMINI_API_KEY)",
+            "stock_final_client": "configured",
         },
     }
 
@@ -164,6 +168,7 @@ def list_etfs(
 @app.get("/v1/etfs/compare", dependencies=[Depends(verify_api_key)])
 def compare_etfs(
     codes: str = Query(..., description="쉼표 구분 2~5개 코드. 예: 069500,SPY,QQQ"),
+    verbose: bool = Query(False, description="LLM 한국어 해설 포함"),
 ):
     """여러 ETF를 병렬 조회 후 공통 지표 비교."""
     code_list = [c.strip() for c in codes.split(",") if c.strip()]
@@ -246,17 +251,20 @@ def compare_etfs(
                 "common_count": len(a_set & b_set) if a_set and b_set else 0,
             })
 
-    return {
+    result = {
         "codes": code_list,
         "count": len(comparison),
         "comparison": comparison,
         "holdings_overlap": overlap,
     }
+    if verbose:
+        result["narrative"] = explain_comparison(result)
+    return result
 
 
 @app.get("/v1/etfs/{code}", dependencies=[Depends(verify_api_key)])
-def get_etf(code: str):
-    """단일 ETF 상세. 자동 라우팅 + 캐시."""
+def get_etf(code: str, verbose: bool = Query(False, description="LLM 한국어 해설 포함")):
+    """단일 ETF 상세. 자동 라우팅 + 캐시. verbose=true 면 LLM 설명 첨부."""
     source = pick_source(code)
     key = f"detail:{source}:{code}"
     try:
@@ -264,7 +272,10 @@ def get_etf(code: str):
             data = _cached_fetch(key, TTL_DETAIL, lambda: get_naver_etf_detail(code))
         else:
             data = _cached_fetch(key, TTL_DETAIL, lambda: get_yf_etf_info(code))
-        return {"source": source, "data": data}
+        response = {"source": source, "data": data}
+        if verbose:
+            response["narrative"] = explain_etf(data)
+        return response
     except Exception as e:
         raise HTTPException(500, f"Data fetch failed: {type(e).__name__}")
 
@@ -370,19 +381,49 @@ class PortfolioRequest(BaseModel):
 
 
 @app.post("/v1/portfolio/recommend", dependencies=[Depends(verify_api_key)])
-def recommend_portfolio(req: PortfolioRequest):
-    """사용자 프로필 기반 포트폴리오 추천."""
+def recommend_portfolio(req: PortfolioRequest, verbose: bool = Query(False)):
+    """사용자 프로필 기반 포트폴리오 추천. verbose=true 면 LLM 해설 첨부."""
     try:
-        return portfolio_recommend(
+        result = portfolio_recommend(
             risk=req.risk,
             amount_krw=req.amount_krw,
             horizon_years=req.horizon_years,
             theme=req.theme,
             market_mix=req.market_mix,
         )
+        if verbose:
+            result["narrative"] = explain_portfolio(result)
+        return result
     except Exception as e:
         raise HTTPException(500, f"Portfolio engine failed: {type(e).__name__}: {str(e)[:200]}")
 
 
-# TODO Phase 4: ?verbose=true LLM 설명, /v1/etfs/{etf}/holdings/{stock} drill-down
+# ─────────────────────────────────────────────
+# stock-final drill-down: ETF 구성종목 → 개별 종목 분석
+# ─────────────────────────────────────────────
+@app.get(
+    "/v1/etfs/{etf_code}/holdings/{stock_code}",
+    dependencies=[Depends(verify_api_key)],
+)
+def get_holding_analysis(etf_code: str, stock_code: str):
+    """ETF 구성종목 중 하나의 개별 종목 상세 분석 (stock-final 릴레이).
+
+    현재 한국 종목(stock_code)만 지원. 해외 종목은 yfinance로 가능하지만
+    stock-final에 연결하는 특성상 한국 종목이 먼저.
+    """
+    # 캐시 (stock-final 결과도 캐시)
+    from etf_cache import TTL_DETAIL
+    key = f"stockfinal:{stock_code}"
+
+    def _fetch():
+        return get_stock_analysis(stock_code)
+
+    result = _cached_fetch(key, TTL_DETAIL, _fetch)
+    return {
+        "etf_code": etf_code,
+        "stock_code": stock_code,
+        "analysis": result,
+    }
+
+
 # TODO Phase 5: /mcp SSE mount
