@@ -72,7 +72,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="etf-analyzer",
     description="한국/해외 ETF 분석 & 포트폴리오 추천 서비스",
-    version="0.5.1",
+    version="0.5.2",
     openapi_url=None,
     docs_url=None,
     redoc_url=None,
@@ -149,7 +149,7 @@ def _cached_fetch(key: str, ttl: int, fetcher):
 def root():
     return {
         "service": "etf-analyzer",
-        "version": "0.5.1",
+        "version": "0.5.2",
         "status": "ready",
         "message": "한국/해외 ETF 분석 및 포트폴리오 추천 서비스",
     }
@@ -468,20 +468,24 @@ def get_holding_analysis(etf_code: str, stock_code: str):
 
 
 # ─────────────────────────────────────────────
-# MCP 서버 마운트 (Streamable HTTP 트랜스포트)
+# MCP 서버 마운트 (SSE 트랜스포트)
+# sse_app()는 /sse(GET), /messages(POST) 라우트 제공
+# 마운트 경로 /mcp → 실제 엔드포인트: /mcp/sse, /mcp/messages
+#
+# Claude Desktop 설정 URL: https://etf-analyzer.replit.app/mcp/sse
 # ─────────────────────────────────────────────
 if _MCP_AVAILABLE and _mcp_server is not None:
     try:
         _mcp_app = None
-        # mcp>=1.3.0: streamable_http_app()
-        if hasattr(_mcp_server, "streamable_http_app"):
-            _mcp_app = _mcp_server.streamable_http_app()
-        elif hasattr(_mcp_server, "sse_app"):
+        # SSE 우선 (마운트 친화적 — /sse, /messages 라우트가 sub-app 루트에 위치)
+        if hasattr(_mcp_server, "sse_app"):
             _mcp_app = _mcp_server.sse_app()
+        elif hasattr(_mcp_server, "streamable_http_app"):
+            _mcp_app = _mcp_server.streamable_http_app()
 
         if _mcp_app is not None:
             app.mount("/mcp", _mcp_app)
-            logger.info("MCP mounted at /mcp")
+            logger.info("MCP mounted at /mcp (SSE endpoint: /mcp/sse)")
         else:
             logger.warning("MCP server has no ASGI app method")
             _MCP_AVAILABLE = False
