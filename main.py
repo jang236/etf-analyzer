@@ -72,7 +72,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="etf-analyzer",
     description="한국/해외 ETF 분석 & 포트폴리오 추천 서비스",
-    version="0.5.2",
+    version="0.5.3",
     openapi_url=None,
     docs_url=None,
     redoc_url=None,
@@ -109,21 +109,12 @@ app.add_middleware(SlowAPIMiddleware)
 
 
 # ─────────────────────────────────────────────
-# MCP 경로 인증 미들웨어
-# (FastAPI dependencies는 Starlette mount 하위엔 적용 안 됨)
+# MCP 경로: 인증 선택적 (claude.ai 웹 커넥터 호환)
+# claude.ai 웹 UI는 현재 커스텀 헤더를 지원하지 않아 OAuth만 가능.
+# 간편 테스트를 위해 /mcp 경로는 공개로 운영 (REST /v1/*는 X-API-Key 유지).
+# 오남용 방지는 레이트리밋(300/min per IP)으로 커버.
+# 추후 OAuth 구현 시 인증 재도입.
 # ─────────────────────────────────────────────
-@app.middleware("http")
-async def mcp_auth_middleware(request: Request, call_next):
-    if request.url.path.startswith("/mcp"):
-        expected_key = os.environ.get("ETF_API_KEY")
-        if expected_key:
-            provided = request.headers.get("x-api-key")
-            if provided != expected_key:
-                return JSONResponse(
-                    status_code=401,
-                    content={"error": "Invalid or missing X-API-Key for MCP endpoint"},
-                )
-    return await call_next(request)
 
 
 # ─────────────────────────────────────────────
@@ -149,7 +140,7 @@ def _cached_fetch(key: str, ttl: int, fetcher):
 def root():
     return {
         "service": "etf-analyzer",
-        "version": "0.5.2",
+        "version": "0.5.3",
         "status": "ready",
         "message": "한국/해외 ETF 분석 및 포트폴리오 추천 서비스",
     }
