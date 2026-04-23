@@ -37,13 +37,20 @@ from portfolio_engine import recommend as portfolio_recommend
 from llm_narrative import explain_etf, explain_comparison, explain_portfolio, is_available as llm_available
 from stock_final_client import get_stock_analysis, is_available as stock_final_available
 
+# MCP 서버 (optional import — mcp 패키지 미설치 시에도 앱은 동작)
+try:
+    from mcp_server import mcp as _mcp_server
+    _MCP_AVAILABLE = True
+except ImportError:
+    _MCP_AVAILABLE = False
+
 KST = timezone(timedelta(hours=9))
 
 # FastAPI 앱
 app = FastAPI(
     title="etf-analyzer",
     description="한국/해외 ETF 분석 & 포트폴리오 추천 서비스",
-    version="0.4.0",
+    version="0.5.0",
     openapi_url=None,
     docs_url=None,
     redoc_url=None,
@@ -79,6 +86,24 @@ app.add_middleware(SlowAPIMiddleware)
 
 
 # ─────────────────────────────────────────────
+# MCP 경로 인증 미들웨어
+# (FastAPI dependencies는 Starlette mount 하위엔 적용 안 됨)
+# ─────────────────────────────────────────────
+@app.middleware("http")
+async def mcp_auth_middleware(request: Request, call_next):
+    if request.url.path.startswith("/mcp"):
+        expected_key = os.environ.get("ETF_API_KEY")
+        if expected_key:
+            provided = request.headers.get("x-api-key")
+            if provided != expected_key:
+                return JSONResponse(
+                    status_code=401,
+                    content={"error": "Invalid or missing X-API-Key for MCP endpoint"},
+                )
+    return await call_next(request)
+
+
+# ─────────────────────────────────────────────
 # Startup: DB 초기화
 # ─────────────────────────────────────────────
 @app.on_event("startup")
@@ -109,7 +134,7 @@ def _cached_fetch(key: str, ttl: int, fetcher):
 def root():
     return {
         "service": "etf-analyzer",
-        "version": "0.4.0",
+        "version": "0.5.0",
         "status": "ready",
         "message": "한국/해외 ETF 분석 및 포트폴리오 추천 서비스",
     }
@@ -127,6 +152,7 @@ def health():
             "portfolio_engine": "ready",
             "llm_narrative": "available" if llm_available() else "stub (set GEMINI_API_KEY)",
             "stock_final_client": "configured",
+            "mcp": "mounted" if _MCP_AVAILABLE else "unavailable (install mcp pkg)",
         },
     }
 
@@ -426,4 +452,16 @@ def get_holding_analysis(etf_code: str, stock_code: str):
     }
 
 
-# TODO Phase 5: /mcp SSE mount
+# ─────────────────────────────────────────────
+# MCP 서버 마운트 (Streamable HTTP 트랜스포트)
+# ─────────────────────────────────────────────
+if _MCP_AVAILABLE:
+    # FastMCP가 제공하는 Starlette ASGI 앱을 FastAPI에 마운트
+    # Claude Desktop 등에서 https://etf-analyzer.replit.app/mcp 로 접속
+    try:
+        # mcp>=1.3.0: streamable_http_app() 우선
+        _mcp_app = _mcp_server.streamable_http_app()
+    except AttributeError:
+        # 이전 버전: sse_app()
+        _mcp_app = _mcp_server.sse_app()
+    app.mount("/mcp", _mcp_app)
