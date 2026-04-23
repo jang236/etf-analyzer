@@ -20,6 +20,8 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
+from pydantic import BaseModel
+
 from auth import verify_api_key
 from router import pick_source, detect_market_from_query
 from naver_etf import get_naver_etf_list, get_naver_etf_detail, get_naver_etf_holdings_full
@@ -31,6 +33,7 @@ from etf_cache import (
     init_db, get_cached, set_cached, clear_cache, cache_stats,
     TTL_DETAIL, TTL_LIST, TTL_HOLDINGS, TTL_RETURNS,
 )
+from portfolio_engine import recommend as portfolio_recommend
 
 KST = timezone(timedelta(hours=9))
 
@@ -38,7 +41,7 @@ KST = timezone(timedelta(hours=9))
 app = FastAPI(
     title="etf-analyzer",
     description="한국/해외 ETF 분석 & 포트폴리오 추천 서비스",
-    version="0.2.0",
+    version="0.3.0",
     openapi_url=None,
     docs_url=None,
     redoc_url=None,
@@ -104,7 +107,7 @@ def _cached_fetch(key: str, ttl: int, fetcher):
 def root():
     return {
         "service": "etf-analyzer",
-        "version": "0.2.0",
+        "version": "0.3.0",
         "status": "ready",
         "message": "한국/해외 ETF 분석 및 포트폴리오 추천 서비스",
     }
@@ -119,7 +122,7 @@ def health():
             "naver": "ready",
             "yfinance": "ready",
             "cache": "ready",
-            "portfolio_engine": "stub",
+            "portfolio_engine": "ready",
         },
     }
 
@@ -355,6 +358,31 @@ def admin_cache_stats():
     return cache_stats()
 
 
-# TODO Phase 3: POST /v1/portfolio/recommend
+# ─────────────────────────────────────────────
+# Portfolio recommendation
+# ─────────────────────────────────────────────
+class PortfolioRequest(BaseModel):
+    risk: str = "balanced"              # conservative / balanced / aggressive
+    amount_krw: int = 500_000
+    horizon_years: int = 10
+    theme: Optional[str] = None         # 반도체 / AI / 배당 / 리츠 등
+    market_mix: str = "global"          # global / kr_only / us_only
+
+
+@app.post("/v1/portfolio/recommend", dependencies=[Depends(verify_api_key)])
+def recommend_portfolio(req: PortfolioRequest):
+    """사용자 프로필 기반 포트폴리오 추천."""
+    try:
+        return portfolio_recommend(
+            risk=req.risk,
+            amount_krw=req.amount_krw,
+            horizon_years=req.horizon_years,
+            theme=req.theme,
+            market_mix=req.market_mix,
+        )
+    except Exception as e:
+        raise HTTPException(500, f"Portfolio engine failed: {type(e).__name__}: {str(e)[:200]}")
+
+
 # TODO Phase 4: ?verbose=true LLM 설명, /v1/etfs/{etf}/holdings/{stock} drill-down
 # TODO Phase 5: /mcp SSE mount
