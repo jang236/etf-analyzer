@@ -8,13 +8,18 @@ etf-analyzer — 한국/해외 ETF 분석 & 포트폴리오 추천 MCP 서비스
 - X-API-Key 인증 미들웨어
 """
 import os
+import logging
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone, timedelta
 from typing import Optional, List, Dict
 
 from fastapi import FastAPI, Depends, HTTPException, Query, Request, Header
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("etf-analyzer")
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -37,23 +42,41 @@ from portfolio_engine import recommend as portfolio_recommend
 from llm_narrative import explain_etf, explain_comparison, explain_portfolio, is_available as llm_available
 from stock_final_client import get_stock_analysis, is_available as stock_final_available
 
-# MCP 서버 (optional import — mcp 패키지 미설치 시에도 앱은 동작)
+# MCP 서버 (optional — 실패해도 앱은 동작)
+_MCP_AVAILABLE = False
+_mcp_server = None
 try:
     from mcp_server import mcp as _mcp_server
     _MCP_AVAILABLE = True
-except ImportError:
-    _MCP_AVAILABLE = False
+    logger.info("MCP server module loaded")
+except Exception as e:
+    logger.warning(f"MCP server unavailable: {type(e).__name__}: {e}")
 
 KST = timezone(timedelta(hours=9))
+
+
+# ─────────────────────────────────────────────
+# Lifespan (FastAPI 신식) — on_event("startup") 대체
+# ─────────────────────────────────────────────
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        init_db()
+        logger.info("DB initialized")
+    except Exception as e:
+        logger.error(f"DB init failed: {e}")
+    yield
+
 
 # FastAPI 앱
 app = FastAPI(
     title="etf-analyzer",
     description="한국/해외 ETF 분석 & 포트폴리오 추천 서비스",
-    version="0.5.0",
+    version="0.5.1",
     openapi_url=None,
     docs_url=None,
     redoc_url=None,
+    lifespan=lifespan,
 )
 
 # CORS 화이트리스트
@@ -104,14 +127,6 @@ async def mcp_auth_middleware(request: Request, call_next):
 
 
 # ─────────────────────────────────────────────
-# Startup: DB 초기화
-# ─────────────────────────────────────────────
-@app.on_event("startup")
-def on_startup():
-    init_db()
-
-
-# ─────────────────────────────────────────────
 # 캐시 헬퍼
 # ─────────────────────────────────────────────
 def _cached_fetch(key: str, ttl: int, fetcher):
@@ -134,7 +149,7 @@ def _cached_fetch(key: str, ttl: int, fetcher):
 def root():
     return {
         "service": "etf-analyzer",
-        "version": "0.5.0",
+        "version": "0.5.1",
         "status": "ready",
         "message": "한국/해외 ETF 분석 및 포트폴리오 추천 서비스",
     }
@@ -455,13 +470,21 @@ def get_holding_analysis(etf_code: str, stock_code: str):
 # ─────────────────────────────────────────────
 # MCP 서버 마운트 (Streamable HTTP 트랜스포트)
 # ─────────────────────────────────────────────
-if _MCP_AVAILABLE:
-    # FastMCP가 제공하는 Starlette ASGI 앱을 FastAPI에 마운트
-    # Claude Desktop 등에서 https://etf-analyzer.replit.app/mcp 로 접속
+if _MCP_AVAILABLE and _mcp_server is not None:
     try:
-        # mcp>=1.3.0: streamable_http_app() 우선
-        _mcp_app = _mcp_server.streamable_http_app()
-    except AttributeError:
-        # 이전 버전: sse_app()
-        _mcp_app = _mcp_server.sse_app()
-    app.mount("/mcp", _mcp_app)
+        _mcp_app = None
+        # mcp>=1.3.0: streamable_http_app()
+        if hasattr(_mcp_server, "streamable_http_app"):
+            _mcp_app = _mcp_server.streamable_http_app()
+        elif hasattr(_mcp_server, "sse_app"):
+            _mcp_app = _mcp_server.sse_app()
+
+        if _mcp_app is not None:
+            app.mount("/mcp", _mcp_app)
+            logger.info("MCP mounted at /mcp")
+        else:
+            logger.warning("MCP server has no ASGI app method")
+            _MCP_AVAILABLE = False
+    except Exception as e:
+        logger.error(f"MCP mount failed: {type(e).__name__}: {e}")
+        _MCP_AVAILABLE = False
