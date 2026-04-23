@@ -27,7 +27,38 @@ from portfolio_engine import recommend as _portfolio_recommend
 from llm_narrative import explain_etf, explain_comparison, explain_portfolio
 from curated_us_etfs import CURATED_US_ETFS
 
-mcp = FastMCP("etf-analyzer")
+# ─────────────────────────────────────────────
+# FastMCP + DNS rebinding 보호 비활성화 (Replit 원격 호스트 허용)
+# ─────────────────────────────────────────────
+_transport_security = None
+_candidate_imports = [
+    "mcp.server.transport_security",
+    "mcp.server.fastmcp.utilities.transport_security",
+    "mcp.server.fastmcp.transport_security",
+    "mcp.server.auth.transport_security",
+]
+for _modpath in _candidate_imports:
+    try:
+        _mod = __import__(_modpath, fromlist=["TransportSecuritySettings"])
+        _TSS = getattr(_mod, "TransportSecuritySettings", None)
+        if _TSS:
+            _transport_security = _TSS(enable_dns_rebinding_protection=False)
+            break
+    except (ImportError, AttributeError, TypeError):
+        continue
+
+if _transport_security is not None:
+    mcp = FastMCP("etf-analyzer", transport_security=_transport_security)
+else:
+    # Fallback: 일반 생성 후 속성 직접 패치 시도
+    mcp = FastMCP("etf-analyzer")
+    for _attr in ("_settings", "settings"):
+        _s = getattr(mcp, _attr, None)
+        if _s is not None and hasattr(_s, "transport_security"):
+            try:
+                _s.transport_security.enable_dns_rebinding_protection = False
+            except AttributeError:
+                pass
 
 
 # ─────────────────────────────────────────────
