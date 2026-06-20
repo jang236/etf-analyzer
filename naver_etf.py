@@ -167,6 +167,36 @@ def get_naver_etf_detail(code: str) -> Dict:
             result["holdings_top"] = deduped[:10]  # TOP 10만
 
     # ─────────────────────────────────────
+    # Fallback 구성종목 (.etf_asset 섹션의 table.tb_type1_b)
+    # 해외주식형·채권·원자재 ETF는 구성종목이 tb_type1_a 가 아니라
+    # 'ETF 주요 구성자산' 섹션(.etf_asset)의 tb_type1_b 테이블에 실린다.
+    # 외국종목/채권/현금이라 6자리 종목코드가 없으므로 종목명을 식별자(code)로 사용.
+    # (price/change_rate 는 이 표에 없으므로 None)
+    # ─────────────────────────────────────
+    if not result["holdings_top"]:
+        asset_section = soup.select_one(".etf_asset")
+        if asset_section:
+            asset_table = (asset_section.select_one("table.tb_type1_b")
+                           or asset_section.select_one("table"))
+            if asset_table:
+                for tr in asset_table.select("tbody tr"):
+                    cells = tr.select("td")
+                    if len(cells) < 3:
+                        continue
+                    name = cells[0].get_text(strip=True)
+                    if not name:
+                        continue
+                    result["holdings_top"].append({
+                        "code": name,  # 6자리 코드 없음 → 종목명을 식별자로
+                        "name": name,
+                        "shares": _parse_int(cells[1].get_text()),
+                        "weight_pct": _parse_float(cells[2].get_text()),
+                        "price": None,
+                        "change_rate": None,
+                    })
+                result["holdings_top"] = result["holdings_top"][:10]  # TOP 10만
+
+    # ─────────────────────────────────────
     # NAV 추이 (table.tb_type1 within section etf_nav)
     # ─────────────────────────────────────
     nav_section = soup.select_one(".etf_nav")
