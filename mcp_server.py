@@ -17,6 +17,7 @@ Claude Desktop 연결:
 """
 from typing import Optional, List, Dict
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone, timedelta
 
 from mcp.server.fastmcp import FastMCP
 
@@ -26,6 +27,17 @@ from yfinance_etf import get_yf_etf_info, get_yf_etf_holdings
 from portfolio_engine import recommend as _portfolio_recommend
 from llm_narrative import explain_etf, explain_comparison, explain_portfolio
 from curated_us_etfs import CURATED_US_ETFS
+
+# ─────────────────────────────────────────────
+# as_of 타임스탬프 (호출 시각 = 데이터 수집 시각, KST)
+# 주의: 도구가 외부 소스를 호출한 시각이지 거래소 시세 기준 시각은 아님.
+# ─────────────────────────────────────────────
+KST = timezone(timedelta(hours=9))
+
+
+def _now_kst() -> str:
+    """현재 호출 시각을 KST ISO8601 문자열로 반환."""
+    return datetime.now(KST).isoformat()
 
 # ─────────────────────────────────────────────
 # FastMCP + DNS rebinding 보호 비활성화 (Replit 원격 호스트 허용)
@@ -80,10 +92,11 @@ def search_etf(
         limit: 최대 반환 개수 (기본 20).
 
     Returns:
-        {kr: {count, items}, us: {count, items}}  (market=BOTH 기준)
+        {as_of, kr: {count, items}, us: {count, items}}  (market=BOTH 기준)
+        as_of: 호출(데이터 수집) 시각 KST ISO8601.
     """
     market = market.upper()
-    results = {"query": query, "market": market}
+    results = {"as_of": _now_kst(), "query": query, "market": market}
     q_lower = query.lower().strip()
 
     if market in ("KR", "BOTH"):
@@ -117,20 +130,22 @@ def get_etf_info(code_or_name: str, verbose: bool = False) -> dict:
         verbose: True면 한국어 해설 포함.
 
     Returns:
-        {source, data, narrative?}
+        {as_of, source, data, narrative?}
+        as_of: 호출(데이터 수집) 시각 KST ISO8601.
     """
+    as_of = _now_kst()
     source = pick_source(code_or_name)
     try:
         if source == "naver":
             data = get_naver_etf_detail(code_or_name)
         else:
             data = get_yf_etf_info(code_or_name)
-        response = {"source": source, "data": data}
+        response = {"as_of": as_of, "source": source, "data": data}
         if verbose:
             response["narrative"] = explain_etf(data)
         return response
     except Exception as e:
-        return {"error": f"{type(e).__name__}: {str(e)[:200]}"}
+        return {"as_of": as_of, "error": f"{type(e).__name__}: {str(e)[:200]}"}
 
 
 # ─────────────────────────────────────────────
@@ -145,11 +160,13 @@ def compare_etfs(codes: str, verbose: bool = False) -> dict:
         verbose: True면 한국어 해설 포함.
 
     Returns:
-        {codes, comparison: [...], holdings_overlap: [...], narrative?}
+        {as_of, codes, comparison: [...], holdings_overlap: [...], narrative?}
+        as_of: 호출(데이터 수집) 시각 KST ISO8601.
     """
+    as_of = _now_kst()
     code_list = [c.strip() for c in codes.split(",") if c.strip()]
     if not (2 <= len(code_list) <= 5):
-        return {"error": "codes는 2~5개여야 합니다."}
+        return {"as_of": as_of, "error": "codes는 2~5개여야 합니다."}
 
     def _fetch_one(code):
         src = pick_source(code)
@@ -212,6 +229,7 @@ def compare_etfs(codes: str, verbose: bool = False) -> dict:
             })
 
     result = {
+        "as_of": as_of,
         "codes": code_list,
         "comparison": comparison,
         "holdings_overlap": overlap,
@@ -244,9 +262,11 @@ def recommend_portfolio(
         verbose: True면 한국어 해설 포함.
 
     Returns:
-        {portfolio: [{code, name, weight_pct, role, market, allocated_amount_krw}],
+        {as_of, portfolio: [{code, name, weight_pct, role, market, allocated_amount_krw}],
          metrics, warnings, disclaimer, narrative?}
+        as_of: 호출(데이터 수집) 시각 KST ISO8601.
     """
+    as_of = _now_kst()
     try:
         result = _portfolio_recommend(
             risk=risk,
@@ -255,8 +275,9 @@ def recommend_portfolio(
             theme=(theme or None),
             market_mix=market_mix,
         )
+        result["as_of"] = as_of
         if verbose:
             result["narrative"] = explain_portfolio(result)
         return result
     except Exception as e:
-        return {"error": f"{type(e).__name__}: {str(e)[:200]}"}
+        return {"as_of": as_of, "error": f"{type(e).__name__}: {str(e)[:200]}"}
