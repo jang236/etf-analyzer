@@ -140,6 +140,17 @@ def get_etf_info(code_or_name: str, verbose: bool = False) -> dict:
             data = get_naver_etf_detail(code_or_name)
         else:
             data = get_yf_etf_info(code_or_name)
+            # 미국 상장 ETF는 yfinance가 구성종목 비중(티커 포함)을 제공.
+            # get_yf_etf_info 엔 holdings 가 없으므로 여기서 붙여 노출한다.
+            # (네이버 경로는 get_naver_etf_detail 이 이미 holdings_top 을 채움)
+            data["holdings_top"] = [
+                {
+                    "code": h.get("symbol"),
+                    "name": h.get("name"),
+                    "weight_pct": h.get("weight_pct"),
+                }
+                for h in get_yf_etf_holdings(code_or_name, top_n=10)
+            ]
         response = {"as_of": as_of, "source": source, "data": data}
         if verbose:
             response["narrative"] = explain_etf(data)
