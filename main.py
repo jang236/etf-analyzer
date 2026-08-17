@@ -483,3 +483,99 @@ if _MCP_AVAILABLE and _mcp_server is not None:
     except Exception as e:
         logger.error(f"MCP mount failed: {type(e).__name__}: {e}")
         _MCP_AVAILABLE = False
+
+
+# ══════════════════════════════════════════════
+# [추가] MCP Streamable HTTP 트랜스포트 (claude.ai 웹 호환)
+# 기존 SSE(/mcp/sse)는 그대로 유지. 실패해도 앱·SSE 정상 부팅(방어 처리).
+# 신규 엔드포인트: /mcphttp/mcp
+# (stock-final의 검증된 패턴 이식)
+# ══════════════════════════════════════════════
+def _mount_mcp_streamable_http():
+    if not (_MCP_AVAILABLE and _mcp_server is not None):
+        return
+    if not hasattr(_mcp_server, "streamable_http_app"):
+        logger.warning("[streamable] mcp version too old -> pip install -U mcp")
+        return
+    try:
+        from contextlib import asynccontextmanager
+        _http_app = _mcp_server.streamable_http_app()
+        app.mount("/mcphttp", _http_app)
+        _prev_lifespan = app.router.lifespan_context
+
+        @asynccontextmanager
+        async def _combined_lifespan(_app):
+            _cm = None
+            try:
+                _cm = _http_app.router.lifespan_context(_http_app)
+                await _cm.__aenter__()
+            except Exception as e:
+                logger.error(f"[streamable] startup failed -> SSE only: {e}")
+                _cm = None
+            try:
+                async with _prev_lifespan(_app):
+                    yield
+            finally:
+                if _cm is not None:
+                    try:
+                        await _cm.__aexit__(None, None, None)
+                    except Exception:
+                        pass
+
+        app.router.lifespan_context = _combined_lifespan
+        logger.info("[streamable] mounted at /mcphttp/mcp")
+    except Exception as e:
+        logger.error(f"[streamable] mount failed(ignored): {type(e).__name__}: {e}")
+
+
+_mount_mcp_streamable_http()
+
+
+# ══════════════════════════════════════════════
+# [추가] MCP OAuth 인증 경로 (claude.ai 커스텀 커넥터 직접 연결용)
+# 기존 무인증 /mcphttp/mcp 는 그대로 유지. 신규: /mcpauth/mcp (Bearer 필요)
+# ══════════════════════════════════════════════
+def _mount_mcp_oauth():
+    try:
+        from mcp_oauth import router as _oauth_router, BearerGate as _BearerGate
+        app.include_router(_oauth_router)
+        logger.info("[oauth] metadata/endpoints mounted")
+    except Exception as e:
+        logger.error(f"[oauth] router mount failed: {type(e).__name__}: {e}")
+        return
+    if not (_MCP_AVAILABLE and _mcp_server is not None):
+        return
+    if not hasattr(_mcp_server, "streamable_http_app"):
+        return
+    try:
+        from contextlib import asynccontextmanager
+        _auth_app = _mcp_server.streamable_http_app()
+        app.mount("/mcpauth", _BearerGate(_auth_app))
+        _prev = app.router.lifespan_context
+
+        @asynccontextmanager
+        async def _combined_oauth_lifespan(_app):
+            _cm = None
+            try:
+                _cm = _auth_app.router.lifespan_context(_auth_app)
+                await _cm.__aenter__()
+            except Exception as e:
+                logger.error(f"[oauth] session manager startup failed: {e}")
+                _cm = None
+            try:
+                async with _prev(_app):
+                    yield
+            finally:
+                if _cm is not None:
+                    try:
+                        await _cm.__aexit__(None, None, None)
+                    except Exception:
+                        pass
+
+        app.router.lifespan_context = _combined_oauth_lifespan
+        logger.info("[oauth] mounted at /mcpauth/mcp (Bearer required)")
+    except Exception as e:
+        logger.error(f"[oauth] mount failed(ignored): {type(e).__name__}: {e}")
+
+
+_mount_mcp_oauth()
