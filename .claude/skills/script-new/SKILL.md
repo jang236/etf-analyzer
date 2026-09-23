@@ -16,8 +16,9 @@ description: 부코드 대본 프로젝트를 새로 만든다. projects/<slug>/
    3. 마무리 유형: 고정댓글 유도형 / 구독 유도형 / 신뢰 보강형. 이때 `bucode-script/library/format-ledger.md`를 읽어 최근 4편에 신뢰 보강형이 없으면 그 사실을 한 줄로 알린다.
    4. 채널 키워드 (여러 개 가능)
    5. 본론 뼈대 경로: 레퍼런스 1편 / 8단계 구조
-3. 답을 `projects/<slug>/brief.md` 표에 적는다.
-4. 뷰트랩과 핫비디오 수집 표는 부코드가 직접 채운다고 안내하고, 채워지면 `/script-pipeline <slug>` 로 이어가라고 한 줄로 말한다.
+3. 전환 목적과 마무리 유형이 `bucode-script/knowledge/structure-rules.md`의 정합성 표에 맞는지 확인한다. 어긋나면 그 사실을 한 줄로 알리고 어느 쪽을 바꿀지 하나만 묻는다.
+4. 답을 `projects/<slug>/brief.md` 표에 적는다.
+5. 뷰트랩과 핫비디오 수집 표는 부코드가 직접 채운다고 안내하고, 채워지면 `/script-pipeline <slug>` 로 이어가라고 한 줄로 말한다.
 
 ## 하지 않는 것
 
