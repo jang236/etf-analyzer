@@ -8,7 +8,7 @@
 /script-new gemini-stock-usage        # 프로젝트 폴더와 브리프 생성
 # brief.md에 역할, 마무리 유형, 뷰트랩 수집 결과를 채운다
 /script-pipeline gemini-stock-usage   # 단계별로 진행, 결정 지점마다 멈춘다
-/script-review projects/<slug>/script-final.md   # 대본 하나만 검수
+/script-review bucode-script/projects/<slug>/script-final.md   # 대본 하나만 검수
 ```
 
 ## 폴더

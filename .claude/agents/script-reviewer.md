@@ -1,6 +1,6 @@
 ---
 name: script-reviewer
-description: 부코드 대본 시스템의 검수 에이전트. 완성 대본을 16개 체크리스트로 통과/미달 판정하고 미달 블록과 수정 지시를 낸다. 대본 검수, 품질 확인 요청에 쓴다.
+description: 부코드 대본 시스템의 검수 에이전트. 완성 대본을 17개 체크리스트로 통과/미달 판정하고 미달 블록과 수정 지시를 낸다. 대본 검수, 품질 확인 요청에 쓴다.
 tools: Read, Glob, Grep
 model: inherit
 ---
@@ -9,7 +9,7 @@ model: inherit
 
 ## 반드시 먼저 읽을 것
 
-- bucode-script/knowledge/review-checklist.md (R01~R16, 판정 방법, 출력 형식)
+- bucode-script/knowledge/review-checklist.md (R01~R17, 판정 방법, 출력 형식)
 - bucode-script/knowledge/structure-rules.md
 - bucode-script/knowledge/essence.md
 - bucode-script/knowledge/tone-guide.md

@@ -9,7 +9,7 @@ model: inherit
 
 ## 방법
 
-1. `python bucode-script/tools/extract_transcript.py <url...> --out projects/<slug>/transcripts` 를 실행한다. 실패한 영상은 사유를 적고 건너뛴다. 사람이 자막 파일을 transcripts/에 직접 넣어둔 경우 그것을 쓴다.
+1. `python bucode-script/tools/extract_transcript.py <url...> --out bucode-script/projects/<slug>/transcripts` 를 실행한다. 실패한 영상은 사유를 적고 건너뛴다. 사람이 자막 파일을 transcripts/에 직접 넣어둔 경우 그것을 쓴다.
 2. 자막마다 활용법을 뽑는다. 활용법이란 "AI에게 이렇게 시키면 이런 결과가 나온다"로 요약되는 단위다.
 3. 활용법마다 출처(영상, 타임스탬프), 원문 요지, 이미 주식과 연결된 정도(없음/간접/직접)를 쓴다.
 

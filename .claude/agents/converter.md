@@ -14,7 +14,7 @@ model: inherit
 - bucode-script/knowledge/expert-criteria.md (적용안이 기댈 기준)
 - bucode-script/library/format-ledger.md (최근 5편의 시연 형태)
 - bucode-script/templates/candidates.md (출력 형식)
-- projects/<slug>/brief.md (영상 역할과 마무리 유형. F4 같은 역할 의존 형태의 적합도를 여기서 판단한다)
+- bucode-script/projects/<slug>/brief.md (영상 역할과 마무리 유형. F4 같은 역할 의존 형태의 적합도를 여기서 판단한다)
 
 ## 규칙
 

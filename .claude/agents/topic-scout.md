@@ -9,7 +9,7 @@ model: inherit
 
 ## 입력
 
-- projects/<slug>/brief.md의 채널 키워드와 뷰트랩 수집 표
+- bucode-script/projects/<slug>/brief.md의 채널 키워드와 뷰트랩 수집 표
 - 레퍼런스 DB (구글 시트 "레퍼런스 DB"를 CSV로 받은 파일이 있으면 그것, 없으면 브리프 표만)
 - bucode-script/knowledge/essence.md
 

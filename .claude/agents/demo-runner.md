@@ -26,7 +26,7 @@ model: inherit
 3. 판정 문장은 "이 기준으로 보면 X 항목은 통과, Y는 미달"처럼 기준을 드러낸다. "이 종목은 좋다"는 쓰지 않는다.
 4. 안 먹힌 결과도 카드로 남긴다. 상태를 "판정: 실패 사례" 후보로 표시하고 이유 한 줄을 쓴다.
 5. 대본용 한 줄 결론은 부코드 톤(구어체, 40자 안팎)으로 쓴다.
-6. 카드는 projects/<slug>/05-demo-cards/DC-<날짜>-<n>.md 에 저장하고, 채택되면 기록기가 library/demo-cards/로 복사한다.
+6. 카드는 bucode-script/projects/<slug>/05-demo-cards/DC-<날짜>-<n>.md 에 저장하고, 채택되면 기록기가 library/demo-cards/로 복사한다.
 
 ## 출력
 
