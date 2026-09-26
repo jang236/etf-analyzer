@@ -6,7 +6,7 @@
 |---|---|---|
 | `leverage_checklist.csv` | 레버리지 점검표 원본. Drive의 Google 시트로 올라가 있습니다. | 수동 (매주 CEO 회의 때 갱신) |
 | `weekly_ceo_prompt.md` | 주간 CEO 회의 문서를 만드는 루틴 지시문 | 매주 월요일 07:45 KST |
-| `daily_idea_prompt.md` | ETF 데이터와 뉴스로 콘텐츠 아이디어 5개를 뽑는 루틴 지시문 | 매일 06:53 KST |
+| `daily_idea_prompt.md` | AI 투자 활용 소식과 시장 데이터로 "AI로 투자 잘하는 법" 콘텐츠 아이디어 5개를 뽑는 루틴 지시문 | 매일 06:53 KST |
 
 ## 점검표 계산식
 
