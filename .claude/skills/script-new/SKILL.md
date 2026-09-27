@@ -18,7 +18,8 @@ description: 부코드 대본 프로젝트를 새로 만든다. bucode-script/pr
    5. 본론 뼈대 경로: 레퍼런스 1편 / 8단계 구조
 3. 전환 목적과 마무리 유형이 `bucode-script/knowledge/structure-rules.md`의 정합성 표에 맞는지 확인한다. 어긋나면 그 사실을 한 줄로 알리고 어느 쪽을 바꿀지 하나만 묻는다.
 4. 답을 `bucode-script/projects/<slug>/brief.md` 표에 적는다.
-5. 뷰트랩과 핫비디오 수집 표는 부코드가 직접 채운다고 안내하고, 채워지면 `/script-pipeline <slug>` 로 이어가라고 한 줄로 말한다.
+5. 구글 시트 "대본 제작 로그"의 "영상별 진행" 탭에 프로젝트, 주제, 역할, 전환 목적, 마무리 유형, 시작일을 한 줄 추가하고, "단계 기록" 탭에 "0 브리프" 줄을 추가한다 (`bucode-script/library/production-log.md` 참고).
+6. 뷰트랩과 핫비디오 수집 표는 부코드가 직접 채운다고 안내하고, 채워지면 `/script-pipeline <slug>` 로 이어가라고 한 줄로 말한다.
 
 ## 하지 않는 것
 
