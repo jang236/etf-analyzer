@@ -18,6 +18,7 @@
 - 대본 작업으로 ETF 분석기 코드를 건드리지 않는다. 시연 실행기는 분석기 함수를 읽어서 호출만 한다.
 - 타인 영상 자막(`bucode-script/projects/*/transcripts/*.txt`)은 커밋하지 않는다.
 - 프로젝트 경로는 항상 `bucode-script/projects/<slug>/`다.
+- 단계가 끝날 때마다 구글 시트 "대본 제작 로그"에 기록한다. 규칙과 시트 ID는 `bucode-script/library/production-log.md`.
 
 ## 스킬
 

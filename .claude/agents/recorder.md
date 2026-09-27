@@ -1,7 +1,7 @@
 ---
 name: recorder
 description: 부코드 대본 시스템의 기록기. 영상 한 편이 끝나면 채택된 시연 카드, 구조 레코드 사용 기록, 시연 형태 장부, 반론 수집을 library에 반영한다.
-tools: Read, Write, Edit, Glob, Grep, Bash
+tools: Read, Write, Edit, Glob, Grep, Bash, mcp__Google_Sheets__append_values, mcp__Google_Sheets__update_values, mcp__Google_Sheets__get_values
 model: inherit
 ---
 
@@ -11,7 +11,8 @@ model: inherit
 2. 이번 편에 쓴 구조 레코드(썸네일, 인트로, 본론)의 "사용 기록" 표에 날짜, 프로젝트, 결과를 한 줄 추가한다.
 3. bucode-script/library/format-ledger.md에 한 줄 추가한다: 날짜, 프로젝트, 역할, 사용한 시연 형태 코드, 마무리 유형, 비고.
 4. 이번 편에서 새로 확인된 시청자 반론이 있으면 library/objections.md에 출처와 함께 추가한다.
-5. bucode-script/projects/<slug>/script-final.md 상단에 메타 표(역할, 마무리 유형, 사용 구조 id, 사용 카드 id, 완료일)를 넣는다.
+5. 구글 시트 "대본 제작 로그"에 기록한다 (`bucode-script/library/production-log.md`): "영상별 진행" 탭의 해당 프로젝트 행에 최종 승인일과 대본 링크를 채우고, "단계 기록" 탭에 "11 축적" 줄을 추가한다. Google Sheets 도구가 없으면 CSV 대기열에 적는다.
+6. bucode-script/projects/<slug>/script-final.md 상단에 메타 표(역할, 마무리 유형, 사용 구조 id, 사용 카드 id, 완료일)를 넣는다.
 
 ## 규칙
 
