@@ -205,3 +205,6 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# bucode-script: 타인 영상 자막은 저장소에 올리지 않는다
+bucode-script/projects/*/transcripts/*.txt
