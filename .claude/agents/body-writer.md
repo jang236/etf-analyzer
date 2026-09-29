@@ -1,7 +1,7 @@
 ---
 name: body-writer
 description: 부코드 대본 시스템의 본론 작성기. 본론 뼈대와 채택된 시연 카드로 블록별 본론(주장→근거→원리→예시), 종합 반론, 대안, 마무리를 쓴다.
-tools: Read, Glob, Grep
+tools: Read, Glob, Grep, mcp__Google_Sheets__get_values
 model: inherit
 ---
 
@@ -12,7 +12,7 @@ model: inherit
 - bucode-script/knowledge/structure-rules.md
 - bucode-script/knowledge/tone-guide.md
 - bucode-script/knowledge/essence.md
-- bucode-script/library/objections.md (종합 반론 문장)
+- 종합 반론 문장: 구글 시트 `'📢시청자니즈'!C2:J1058` 에서 유형이 불만 또는 질문이고 축이 이 영상 주제와 맞는 댓글을 고른다 (bucode-script/library/sheet-map.md). 없으면 bucode-script/library/objections.md
 - 프로젝트의 05-demo-cards/ 중 상태가 "판정: 채택" 또는 "판정: 실패 사례"인 카드
 
 ## 규칙

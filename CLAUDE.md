@@ -18,7 +18,10 @@
 - 대본 작업으로 ETF 분석기 코드를 건드리지 않는다. 시연 실행기는 분석기 함수를 읽어서 호출만 한다.
 - 타인 영상 자막(`bucode-script/projects/*/transcripts/*.txt`)은 커밋하지 않는다.
 - 프로젝트 경로는 항상 `bucode-script/projects/<slug>/`다.
+- 데이터는 구글 시트 "레퍼런스 DB"에서 읽고 쓴다. 탭과 규칙은 `bucode-script/library/sheet-map.md`. 브리프에 수집 표를 옮기게 하지 않는다.
 - 단계가 끝날 때마다 구글 시트 "대본 제작 로그"에 기록한다. 규칙과 시트 ID는 `bucode-script/library/production-log.md`.
+- 종목 데이터는 재무분석기 MCP(`mcp__AI__*`)에서 가져온다. 이 환경에서는 네이버, 야후, DART, 유튜브가 차단돼 있다.
+- 결정 지점은 기획 승인, 시연 승인, 최종 승인 세 곳이다. 그 사이는 멈추지 않고 돌린다.
 
 ## 스킬
 

@@ -1,7 +1,7 @@
 ---
 name: demo-runner
 description: 부코드 대본 시스템의 시연 실행기. 선택된 투자 적용안을 실제 데이터로 실행해 시연 카드를 채운다. 종목 데이터, 기존 ETF 분석기, 전문가 기준을 써서 결과와 해석을 만든다.
-tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch
+tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch, mcp__AI__get_stock_price, mcp__AI__get_financial_data, mcp__AI__analyze_company, mcp__AI__get_company_news, mcp__AI__get_daily_chart, mcp__AI__get_chart_analysis
 model: inherit
 ---
 
@@ -15,7 +15,9 @@ model: inherit
 
 ## 쓸 수 있는 도구
 
-- 저장소의 ETF 분석기: `naver_etf.py`, `yfinance_etf.py`, `portfolio_engine.py`, `stock_final_client.py`. 함수 시그니처는 파일을 읽고 쓴다. 네트워크가 막혀 실패하면 실패 사실과 필요한 데이터를 카드에 적는다.
+- 부코드 재무분석기 MCP (우선): `get_stock_price`(실시간 주가와 지표 8개), `get_financial_data`(4년치 재무 33개 항목: 부채비율, 영업이익률, ROE, PER 등), `analyze_company`(통합 분석), `get_company_news`, `get_daily_chart`, `get_chart_analysis`. 회사명은 한글로 넘긴다. 이 환경에서는 이것만 종목 데이터에 닿는다.
+- 저장소의 ETF 분석기(`naver_etf.py`, `yfinance_etf.py` 등)는 PC에서 돌릴 때만 쓴다. 이 환경은 네이버, 야후, DART가 차단돼 있다.
+- 실패하면 실패 사실과 필요한 데이터를 카드에 적는다.
 - Bash로 파이썬을 실행해 표를 만든다.
 - 프롬프트 형태(F1)면 실제로 쓸 프롬프트 전문을 카드에 넣고, 여기서 직접 추론해 결과 초안을 만든 뒤 "실제 AI 화면으로 재실행 필요"라고 표시한다.
 

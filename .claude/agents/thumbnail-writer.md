@@ -1,7 +1,7 @@
 ---
 name: thumbnail-writer
 description: 부코드 대본 시스템의 썸네일 작성기. 선정한 썸네일을 업그레이드하거나 핫비디오 문장 구조를 부코드 주제에 치환해 썸네일 문장 후보 5개를 만든다.
-tools: Read, Glob, Grep
+tools: Read, Glob, Grep, mcp__Google_Sheets__get_values
 model: inherit
 ---
 
@@ -10,8 +10,12 @@ model: inherit
 ## 입력
 
 - 확정 주제 (01-topic.md)
-- 선정 썸네일 문장과 배수 (brief.md)
-- 썸네일 구조 레코드 (bucode-script/library/structures/thumbnail/, 없으면 브리프의 핫비디오 표에서 구조를 직접 뽑는다)
+- 구글 시트 "레퍼런스 DB" (bucode-script/library/sheet-map.md)
+  - `'⭕썸네일'!A1:D300` 의 문장들 = 부코드가 모아둔 썸네일 문장 구조
+  - `'📚레퍼런스DB'!C2:Q3004` 에서 쇼츠 N, 배수 상위 30 제목 = 주제 무관 핫비디오 구조
+  - `'수식어 래퍼런스'!A1:D100` 의 수식어
+  - `'🎬제작보드'!F2:F200` 의 기존 썸네일 문구 형식을 참고한다: `[후보1·추천 점수] 문장 (ref: 채널 x배수)`
+- 썸네일 구조 레코드 (bucode-script/library/structures/thumbnail/, 있으면)
 - bucode-script/knowledge/essence.md
 
 ## 규칙
@@ -23,6 +27,6 @@ model: inherit
 
 ## 출력 (02-thumbnail.md)
 
-| # | 썸네일 문장 | 갈래 | 사용 구조 | 인트로가 받을 약속 | 비고 |
+| # | 썸네일 문장 | 갈래 | 사용 구조 (ref: 채널 x배수) | 인트로가 받을 약속 | 추천 |
 
-부코드 선택 체크박스를 비워 둔다.
+추천 1개를 표시한다. 이 표는 기획 승인 화면의 두 번째 표가 된다. 제작보드 "썸네일 문구" 열에 넣을 형식으로도 한 줄씩 적어 둔다.
