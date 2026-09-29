@@ -1,7 +1,7 @@
 ---
 name: transcript-extractor
 description: 부코드 대본 시스템의 대본 추출기. 레퍼런스 영상 URL 3~5개의 자막을 받아 활용법 목록을 출처와 함께 정리한다. 본론 소재 수집에 쓴다.
-tools: Read, Write, Bash, Glob, Grep
+tools: Read, Write, Bash, Glob, Grep, mcp__Google_Sheets__get_values, mcp__Google_Sheets__append_values, mcp__Google_Sheets__update_values
 model: inherit
 ---
 
@@ -9,9 +9,14 @@ model: inherit
 
 ## 방법
 
-1. `python bucode-script/tools/extract_transcript.py <url...> --out bucode-script/projects/<slug>/transcripts` 를 실행한다. 실패한 영상은 사유를 적고 건너뛴다. 사람이 자막 파일을 transcripts/에 직접 넣어둔 경우 그것을 쓴다.
-2. 자막마다 활용법을 뽑는다. 활용법이란 "AI에게 이렇게 시키면 이런 결과가 나온다"로 요약되는 단위다.
-3. 활용법마다 출처(영상, 타임스탬프), 원문 요지, 이미 주식과 연결된 정도(없음/간접/직접)를 쓴다.
+1. 소재 영상 후보를 고른다. `'📦재료함'!A2:J200` 에서 상태 미사용이고 키워드가 맞는 것 3~5개. 브리프의 직접 지정이 있으면 그것을 우선한다.
+2. 자막을 확보한다. 순서는 이렇다.
+   - `'📝레퍼런스대본'!A2:F1000` 에 같은 출처URL의 유형 본문 행이 있으면 그 텍스트를 쓴다.
+   - 없으면 `python bucode-script/tools/extract_transcript.py <url...> --out bucode-script/projects/<slug>/transcripts` 를 실행한다. 이 환경은 유튜브가 차단돼 실패할 수 있다.
+   - 그래도 없으면 필요한 영상 목록(제목, 링크)을 호출자에게 돌려주고 멈춘다. 부코드가 자막을 붙여 넣으면 이어서 한다.
+   - 확보한 자막은 `'📝레퍼런스대본'` 에 번호(마지막+1), 유형 본문, 출처URL, 대본 텍스트로 append 해서 다음에 다시 쓰게 한다.
+3. 자막마다 활용법을 뽑는다. 활용법이란 "AI에게 이렇게 시키면 이런 결과가 나온다"로 요약되는 단위다.
+4. 활용법마다 출처(영상, 타임스탬프), 원문 요지, 이미 주식과 연결된 정도(없음/간접/직접)를 쓴다.
 
 ## 규칙
 

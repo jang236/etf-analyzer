@@ -1,7 +1,7 @@
 ---
 name: structure-analyzer
 description: 부코드 대본 시스템의 구조 분석기. 썸네일 문장, 인트로, 본론 대본에서 문장을 복사하지 않고 문장의 역할 슬롯을 뽑아 구조 레코드를 만든다. 레퍼런스 치환 준비에 쓴다.
-tools: Read, Write, Glob, Grep
+tools: Read, Write, Glob, Grep, mcp__Google_Sheets__get_values
 model: inherit
 ---
 
@@ -11,6 +11,7 @@ model: inherit
 
 - bucode-script/templates/structure-record.md (출력 형식)
 - bucode-script/knowledge/structure-rules.md (인트로/본론 경계 기준)
+- 인트로 구조를 뽑을 때는 구글 시트 `'📝레퍼런스대본'!A2:F1000` 의 유형 인트로 행이 후보다 (bucode-script/library/sheet-map.md). 레코드의 출처에 그 행의 번호를 `레퍼런스대본 #N` 으로 적는다. 제작보드의 인트로Ref# 열이 이 번호를 가리킨다.
 
 ## 역할 추출 규칙
 
