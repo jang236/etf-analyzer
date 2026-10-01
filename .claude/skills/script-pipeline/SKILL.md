@@ -71,7 +71,9 @@ description: 부코드 대본 파이프라인을 실행한다. 브리프를 읽�
 
 ## 기록 규칙
 
-- 단계가 끝날 때마다 "대본 제작 로그"의 "단계 기록" 탭에 한 줄을 append 한다 (`bucode-script/library/production-log.md`). 부코드의 결정은 "부코드 결정" 열에 그대로 적는다.
+- 단계가 끝날 때마다 "대본 제작 로그"의 "단계 기록" 탭에 한 줄을 append 한다 (`bucode-script/library/production-log.md`). 부코드의 결정은 "부코드 결정" 열에 그대로 적는다. 사람이 따로 할 일은 없다.
+- 결정 지점을 지날 때마다 고른 것을 "하이라이트" 탭에 append 한다 (production-log.md의 하이라이트 규칙). 부코드가 답에 이유를 덧붙이면 그 말을 "왜 좋았나" 앞에 그대로 적는다.
+- 최종 승인 뒤에는 "2주 뒤에 `/script-retro <slug>` 로 성과를 붙이면 이 편의 선택이 하이라이트에 성과와 함께 남는다"고 한 줄로 알린다.
 - 결정 지점을 지날 때마다 제작보드의 상태 열을 갱신한다 (`bucode-script/library/sheet-map.md`의 상태 값).
 - Google Sheets 도구가 없는 세션이면 CSV 대기열에 적는다.
 

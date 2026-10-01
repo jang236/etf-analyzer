@@ -9,6 +9,8 @@
 # brief.md에 역할, 마무리 유형, 뷰트랩 수집 결과를 채운다
 /script-pipeline gemini-stock-usage   # 단계별로 진행, 결정 지점마다 멈춘다
 /script-review bucode-script/projects/<slug>/script-final.md   # 대본 하나만 검수
+/script-retro gemini-stock-usage      # 공개 2주 뒤 성과를 결정과 묶어 기록
+/script-recall 썸네일                  # 과거에 좋았던 선택 꺼내 보기
 ```
 
 ## 폴더
@@ -49,6 +51,11 @@
 4. 최종 승인: 검수 통과본을 구글 문서로 받아 확정한다
 
 인트로/본론 경계 확인은 처음 10편만 묻고 그 뒤 자동으로 넘긴다.
+
+## 기록과 회고
+
+- 단계마다 "대본 제작 로그" 시트의 "단계 기록"에 자동으로 남는다. 부코드가 고른 것은 "하이라이트" 탭에 이유와 함께 남는다.
+- `/script-retro`가 성과를 붙이고, `/script-recall`로 과거의 좋은 선택을 꺼내 새 영상에 가져온다. 대화를 뒤질 필요가 없다.
 
 ## 데이터 소스
 
