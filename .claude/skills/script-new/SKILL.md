@@ -19,7 +19,7 @@ description: 부코드 대본 프로젝트를 새로 만든다. bucode-script/pr
 3. 전환 목적과 마무리 유형이 `bucode-script/knowledge/structure-rules.md`의 정합성 표에 맞는지 확인한다. 어긋나면 그 사실을 한 줄로 알리고 어느 쪽을 바꿀지 하나만 묻는다.
 4. 답을 `bucode-script/projects/<slug>/brief.md` 표에 적는다.
 5. 구글 시트 "레퍼런스 DB"의 🎬제작보드에 새 행을 append 한다: 번호(마지막+1), 상태 "기획 승인 대기", 주제(브리프 주제), 키워드. 그 번호를 브리프의 "제작보드 번호"에 적는다 (`bucode-script/library/sheet-map.md`).
-6. "대본 제작 로그"의 "단계 기록" 탭에 "0 브리프" 줄을 추가한다 (`bucode-script/library/production-log.md`).
+6. "대본 제작 로그"의 "단계 기록" 탭에 "0 브리프" 줄을 추가한다 (`bucode-script/library/production-log.md`). 🧭작업실 ① 에 이 프로젝트 줄을 추가한다: 상태 "브리프 완료", 다음 할 일 "채팅에 '진행해'", 어디서 "채팅".
 7. `'🔑상태'!A2:D2` 를 읽어 뷰트랩 수집기 토큰이 만료돼 있으면 한 줄로 알린다. 수집 표를 옮겨 달라고 하지 않는다. 바로 `/script-pipeline <slug>` 로 이어간다고 말한다.
 
 ## 하지 않는 것
